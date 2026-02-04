@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Пошук посилки - Нова Пошта</title>
+  <style>
+    :root {
+      --primary-color: #ff3333;
+      --secondary-color: #f8f9fa;
+      --success-color: #28a745;
+      --text-color: #333;
+      --border-color: #e0e0e0;
+      --shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--secondary-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      color: var(--primary-color);
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      color: #666;
+      font-size: 1.1rem;
+    }
+
+    .search-container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      margin-bottom: 30px;
+    }
+
+    .search-form {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 250px;
+      padding: 15px;
+      font-size: 16px;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+
+    .search-input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(255, 51, 51, 0.1);
+    }
+
+    .search-button {
+      padding: 15px 30px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-width: 120px;
+    }
+
+    .search-button:hover {
+      background-color: #e62e2e;
+      transform: translateY(-2px);
+    }
+
+    .search-button:active {
+      transform: translateY(0);
+    }
+
+    .search-hint {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #666;
+      text-align: center;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      display: none;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--border-color);
+      border-top: 4px solid var(--primary-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .results-info {
+      background: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+      display: none;
+    }
+
+    .result-card {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+      border-left: 5px solid var(--primary-color);
+      transition: transform 0.2s ease;
+    }
+
+    .result-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .ttn-number {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+
+    .date-badge {
+      background: var(--success-color);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .card-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+    }
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .info-label {
+      font-size: 13px;
+      color: #666;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .info-value {
+      font-size: 15px;
+      color: var(--text-color);
+      font-weight: 500;
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 60px 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .no-results-icon {
+      font-size: 4rem;
+      color: #ccc;
+      margin-bottom: 20px;
+    }
+
+    .error-message {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border-left: 4px solid #f5c6cb;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 10px;
+      }
+      
+      .search-form {
+        flex-direction: column;
+      }
+      
+      .search-input {
+        min-width: 100%;
+      }
+      
+      .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      
+      .card-info {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Пошук посилки</h1>
+      <p>Введіть номер телефону або прізвище для пошуку вашого відправлення</p>
+    </div>
+
+    <div class="search-container">
+      <div class="search-form">
+        <input 
+          type="text" 
+          id="searchInput" 
+          class="search-input" 
+          placeholder="Номер телефону або прізвище отримувача"
+          autocomplete="off"
+        >
+        <button type="button" class="search-button" onclick="performSearch()">
+          Знайти
+        </button>
+      </div>
+      <div class="search-hint">
+        Приклади: 380971695816, 0971695816, Авруцька, Влада
+      </div>
+    </div>
+
+    <div id="loading" class="loading">
+      <div class="loading-spinner"></div>
+      <p>Пошук даних...</p>
+    </div>
+
+    <div id="resultsInfo" class="results-info"></div>
+    <div id="results"></div>
+  </div>
+
+  <script>
+    // Замініть на вашу URL Apps Script після розгортання
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyDxImCrmYvBORMuRlfccncxQcdFx2lmt6uwzP0e93pIRpqjJq2mg2hV7D6Yjs4ueHj/exec';
+
+    let searchTimeout;
+
+    // Автоматический поиск при вводе (с задержкой)
+    document.getElementById('searchInput').addEventListener('input', function() {
+      clearTimeout(searchTimeout);
+      const query = this.value.trim();
+      
+      if (query.length >= 3) {
+        searchTimeout = setTimeout(() => performSearch(), 800);
+      } else {
+        clearResults();
+      }
+    });
+
+    // Поиск по Enter
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        clearTimeout(searchTimeout);
+        performSearch();
+      }
+    });
+
+    async function performSearch() {
+      const query = document.getElementById('searchInput').value.trim();
+      const loadingDiv = document.getElementById('loading');
+      const resultsDiv = document.getElementById('results');
+      const resultsInfoDiv = document.getElementById('resultsInfo');
+
+      if (!query) {
+        clearResults();
+        return;
+      }
+
+      if (query.length < 3) {
+        showError('Для пошуку введіть щонайменше 3 символи');
+        return;
+      }
+
+      // Показываем загрузку
+      loadingDiv.style.display = 'block';
+      resultsDiv.innerHTML = '';
+      resultsInfoDiv.style.display = 'none';
+
+      try {
+        const response = await fetch(`${SCRIPT_URL}?query=${encodeURIComponent(query)}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        loadingDiv.style.display = 'none';
+
+        if (data.error) {
+          showError('Помилка доступу до даних: ' + data.error);
+          return;
+        }
+
+        if (!data.data || data.data.length === 0 || data.data[0][0] === "Не знайдено") {
+          showNoResults();
+          return;
+        }
+
+        displayResults(data);
+
+      } catch (error) {
+        console.error('Search error:', error);
+        loadingDiv.style.display = 'none';
+        showError('Помилка з\'єднання з сервером. Перевірте підключення до інтернету.');
+      }
+    }
+
+    function displayResults(data) {
+      const resultsDiv = document.getElementById('results');
+      const resultsInfoDiv = document.getElementById('resultsInfo');
+      
+      // Показываем информацию о результатах
+      const searchTypeText = data.searchType === 'phone' ? 'телефону' : 'прізвищу';
+      resultsInfoDiv.innerHTML = `
+        <strong>Знайдено ${data.totalFound || data.data.length} результат(ів)</strong> за пошуком по ${searchTypeText}
+      `;
+      resultsInfoDiv.style.display = 'block';
+
+      // Отображаем результаты
+      resultsDiv.innerHTML = '';
+      
+      data.data.forEach(row => {
+        const [name, phone, city, branch, createTTN, ttnNumber, date, direction] = row;
+        
+        const cardHTML = `
+          <div class="result-card">
+            <div class="card-header">
+              <div class="ttn-number">ТТН: ${ttnNumber || 'Не вказано'}</div>
+              <div class="date-badge">${date || 'Дата не вказана'}</div>
+            </div>
+            <div class="card-info">
+              <div class="info-item">
+                <div class="info-label">Отримувач</div>
+                <div class="info-value">${name}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Телефон</div>
+                <div class="info-value">${phone}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Місто</div>
+                <div class="info-value">${city}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Відділення</div>
+                <div class="info-value">${branch}</div>
+              </div>
+            </div>
+          </div>
+        `;
+        resultsDiv.innerHTML += cardHTML;
+      });
+    }
+
+    function showNoResults() {
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = `
+        <div class="no-results">
+          <div class="no-results-icon">📦</div>
+          <h3>Нічого не знайдено</h3>
+          <p>Перевірте правильність введених даних та спробуйте ще раз</p>
+        </div>
+      `;
+    }
+
+    function showError(message) {
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = `
+        <div class="error-message">
+          <strong>Помилка:</strong> ${message}
+        </div>
+      `;
+    }
+
+    function clearResults() {
+      document.getElementById('results').innerHTML = '';
+      document.getElementById('resultsInfo').style.display = 'none';
+      document.getElementById('loading').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
